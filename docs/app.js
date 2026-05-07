@@ -71,6 +71,7 @@ function bindEvents() {
   els.batteryCards.addEventListener("change", onBatteryCardsChange);
   els.usageBatteryList.addEventListener("change", updateUsageSelectedCount);
   els.usageEventType.addEventListener("change", onUsageTypeChange);
+  els.batteryForm.addEventListener("submit", submitBatteryForm);
   els.usageForm.addEventListener("submit", submitUsageForm);
   if (els.scanQrBtn) els.scanQrBtn.addEventListener("click", openQrScanner);
   if (els.qrScannerClose) els.qrScannerClose.addEventListener("click", closeQrScanner);
