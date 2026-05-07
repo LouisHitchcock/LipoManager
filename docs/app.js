@@ -5,7 +5,8 @@ const state = {
   selectedStatsBatteryId: null,
   selectedUsageBatteryId: null,
   selectedUsageEventType: null,
-  globalStats: null
+  globalStats: null,
+  qrDetector: null
 };
 
 const els = {};
@@ -617,25 +618,32 @@ function getQrDetector() {
 
 async function scanCurrentFrame() {
   if (!els.qrScannerVideo || !els.qrScannerCanvas) return null;
-  const detector = getQrDetector();
-  if (!detector || els.qrScannerVideo.readyState < 2) return null;
+  if (els.qrScannerVideo.readyState < 2) return null;
 
   const width = els.qrScannerVideo.videoWidth;
   const height = els.qrScannerVideo.videoHeight;
   if (!width || !height) return null;
 
-  const ctx = els.qrScannerCanvas.getContext("2d");
+  const ctx = els.qrScannerCanvas.getContext("2d", { willReadFrequently: true });
   els.qrScannerCanvas.width = width;
   els.qrScannerCanvas.height = height;
   ctx.drawImage(els.qrScannerVideo, 0, 0, width, height);
 
-  const bitmap = await createImageBitmap(els.qrScannerCanvas);
-  try {
-    const codes = await detector.detect(bitmap);
-    return codes[0]?.rawValue || null;
-  } finally {
-    bitmap.close?.();
+  if (window.BarcodeDetector) {
+    const detector = getQrDetector();
+    const bitmap = await createImageBitmap(els.qrScannerCanvas);
+    try {
+      const codes = await detector.detect(bitmap);
+      return codes[0]?.rawValue || null;
+    } finally {
+      bitmap.close?.();
+    }
   }
+
+  if (typeof window.jsQR !== "function") return null;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const code = window.jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "attemptBoth" });
+  return code?.data || null;
 }
 
 function handleScannedQrText(text) {
