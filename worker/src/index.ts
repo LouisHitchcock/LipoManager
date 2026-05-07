@@ -2,7 +2,7 @@ interface Env {
   DB: D1Database;
 }
 
-type EventType = "charged" | "used";
+type EventType = "charged" | "used" | "storage";
 const JSON_HEADERS: Record<string, string> = {
   "content-type": "application/json; charset=utf-8"
 };
@@ -402,6 +402,7 @@ async function insertUsageEvents(
   notes: string | null,
   occurredAt: string
 ): Promise<void> {
+  const storedEventType = eventType === "storage" ? "charged" : eventType;
   const placeholders = batteryIds.map(() => "?").join(", ");
   const existing = await env.DB.prepare(`SELECT id FROM batteries WHERE id IN (${placeholders})`)
     .bind(...batteryIds)
@@ -421,7 +422,7 @@ async function insertUsageEvents(
           battery_id, event_type, final_avg_voltage, notes, occurred_at, created_at
         ) VALUES (?, ?, ?, ?, ?, ?)
       `
-    ).bind(batteryId, eventType, finalAvgVoltage, notes, occurredAt, createdAt)
+    ).bind(batteryId, storedEventType, finalAvgVoltage, notes, occurredAt, createdAt)
   );
 
   await env.DB.batch(statements);
@@ -435,15 +436,15 @@ async function createSingleEvent(env: Env, request: Request): Promise<Response> 
   if (!batteryId) return json({ error: "batteryId must be an integer." }, 400);
 
   const eventType = body.eventType;
-  if (eventType !== "charged" && eventType !== "used") {
-    return json({ error: "eventType must be 'charged' or 'used'." }, 400);
+  if (eventType !== "charged" && eventType !== "used" && eventType !== "storage") {
+    return json({ error: "eventType must be 'charged', 'used', or 'storage'." }, 400);
   }
 
   const parsedVoltage = parseVoltage(body.finalAvgVoltage);
   if (parsedVoltage.error) {
     return json({ error: parsedVoltage.error }, 400);
   }
-  const finalAvgVoltage = parsedVoltage.value;
+  const finalAvgVoltage = eventType === "storage" ? 3.8 : parsedVoltage.value;
   if (eventType === "used" && finalAvgVoltage === null) {
     return json({ error: "finalAvgVoltage is required for used events." }, 400);
   }
@@ -471,15 +472,15 @@ async function createBatchEvents(env: Env, request: Request): Promise<Response> 
 
   const uniqueIds = [...new Set(batteryIds)];
   const eventType = body.eventType;
-  if (eventType !== "charged" && eventType !== "used") {
-    return json({ error: "eventType must be 'charged' or 'used'." }, 400);
+  if (eventType !== "charged" && eventType !== "used" && eventType !== "storage") {
+    return json({ error: "eventType must be 'charged', 'used', or 'storage'." }, 400);
   }
 
   const parsedVoltage = parseVoltage(body.finalAvgVoltage);
   if (parsedVoltage.error) {
     return json({ error: parsedVoltage.error }, 400);
   }
-  const finalAvgVoltage = parsedVoltage.value;
+  const finalAvgVoltage = eventType === "storage" ? 3.8 : parsedVoltage.value;
   if (eventType === "used" && finalAvgVoltage === null) {
     return json({ error: "finalAvgVoltage is required for used events." }, 400);
   }
@@ -519,6 +520,14 @@ async function listBatteryEvents(env: Env, batteryId: number, request: Request):
     .all();
 
   return json({ events: results ?? [] });
+}
+
+async function deleteUsageEvent(env: Env, eventId: number): Promise<Response> {
+  const result = await env.DB.prepare("DELETE FROM usage_events WHERE id = ?").bind(eventId).run();
+  if (!result.meta.changes) {
+    return json({ error: "Event not found." }, 404);
+  }
+  return json({ deleted: 1 });
 }
 
 async function globalStats(env: Env): Promise<Response> {
@@ -591,6 +600,19 @@ export default {
 
       if (pathname === "/api/events/batch" && request.method === "POST") {
         return withCors(await createBatchEvents(env, request), request);
+      }
+
+      if (pathname === "/api/stats" && request.method === "GET") {
+        return withCors(await globalStats(env), request);
+      }
+
+      const eventIdMatch = pathname.match(/^\/api\/events\/(\d+)$/);
+      if (eventIdMatch && request.method === "DELETE") {
+        return withCors(await deleteUsageEvent(env, Number(eventIdMatch[1])), request);
+      }
+
+      if (batteryId && request.method === "DELETE") {
+        return withCors(await deleteBattery(env, batteryId), request);
       }
 
       if (pathname === "/api/stats" && request.method === "GET") {

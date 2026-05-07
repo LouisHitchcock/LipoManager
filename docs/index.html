@@ -84,6 +84,10 @@
                     Date purchased
                     <input type="date" id="battery-purchased" required />
                   </label>
+                  <label>
+                    Count
+                    <input type="number" id="battery-count" min="1" value="1" />
+                  </label>
                   <label class="span-2">
                     Notes (optional)
                     <input type="text" id="battery-notes" maxlength="300" />
@@ -98,9 +102,16 @@
               <section class="panel">
                 <div class="panel-header">
                   <div>
-                    <h2>Battery Fleet</h2>
-                    <p class="muted">Track active and archived packs with QR labels.</p>
-                  </div>
+                <h2>Battery Fleet</h2>
+                <p class="muted">Track active and archived packs with QR labels.</p>
+                <div class="sort-row">
+                  <select id="battery-sort-order">
+                    <option value="stars">Stars</option>
+                    <option value="newest">Newest</option>
+                    <option value="recently-used">Most recently used</option>
+                  </select>
+                  <input id="battery-serial-search" type="search" placeholder="Search name, serial, or last 3 digits" />
+                </div>
                   <div class="toolbar">
                     <label>
                       Show
@@ -135,7 +146,17 @@
                 <div class="span-2 picker-panel">
                   <div class="picker-head">
                     <label>Choose batteries</label>
-                    <button id="usage-select-all" type="button" class="secondary tiny">Select all</button>
+                    <div class="sort-row">
+                      <select id="usage-sort-order">
+                        <option value="stars">Stars</option>
+                        <option value="newest">Newest</option>
+                        <option value="recently-used">Most recently used</option>
+                      </select>
+                      <button id="usage-select-all" type="button" class="secondary tiny">Select all</button>
+                    </div>
+                  </div>
+                  <div class="search-row">
+                    <input id="usage-battery-search" type="search" placeholder="Search name, serial, or last 3 digits" />
                   </div>
                   <div id="usage-battery-list" class="checklist"></div>
                   <small id="usage-selected-count">0 selected</small>
@@ -208,6 +229,10 @@
                     Battery
                     <select id="stats-battery-select"></select>
                   </label>
+                  <div class="stats-grid-cards" id="stats-battery-grid"></div>
+                  <div class="form-actions">
+                    <button id="stats-delete-selected" type="button" class="secondary">Delete Selected Events</button>
+                  </div>
                   <div id="stats-panel" class="stats-panel span-2"></div>
                 </div>
               </section>
