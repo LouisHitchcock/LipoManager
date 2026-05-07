@@ -3,6 +3,8 @@ const state = {
   batterySearch: "",
   allBatteries: [],
   selectedStatsBatteryId: null,
+  selectedUsageBatteryId: null,
+  selectedUsageEventType: null,
   globalStats: null
 };
 
@@ -32,6 +34,12 @@ function cacheElements() {
   els.usageFinalVoltage = document.getElementById("usage-final-voltage");
   els.usageBatteryList = document.getElementById("usage-battery-list");
   els.usageSelectedCount = document.getElementById("usage-selected-count");
+  els.scanQrBtn = document.getElementById("scan-qr-btn");
+  els.qrScannerModal = document.getElementById("qr-scanner-modal");
+  els.qrScannerVideo = document.getElementById("qr-scanner-video");
+  els.qrScannerCanvas = document.getElementById("qr-scanner-canvas");
+  els.qrScannerMessage = document.getElementById("qr-scanner-message");
+  els.qrScannerClose = document.getElementById("qr-scanner-close");
   els.statsBatterySelect = document.getElementById("stats-battery-select");
   els.statsPanel = document.getElementById("stats-panel");
   els.batteryEvents = document.getElementById("battery-events");
@@ -62,6 +70,13 @@ function bindEvents() {
   els.usageBatteryList.addEventListener("change", updateUsageSelectedCount);
   els.usageEventType.addEventListener("change", onUsageTypeChange);
   els.usageForm.addEventListener("submit", submitUsageForm);
+  if (els.scanQrBtn) els.scanQrBtn.addEventListener("click", openQrScanner);
+  if (els.qrScannerClose) els.qrScannerClose.addEventListener("click", closeQrScanner);
+  if (els.qrScannerModal) {
+    els.qrScannerModal.addEventListener("click", (event) => {
+      if (event.target === els.qrScannerModal) closeQrScanner();
+    });
+  }
   els.statsBatterySelect.addEventListener("change", async () => {
     state.selectedStatsBatteryId = Number(els.statsBatterySelect.value) || null;
     await loadStatsPanel();
@@ -70,10 +85,16 @@ function bindEvents() {
 
 async function initializeUi() {
   onUsageTypeChange();
-  const initialTab = new URLSearchParams(window.location.search).get("tab");
+
+  const params = new URLSearchParams(window.location.search);
+  const initialTab = params.get("tab");
+  state.selectedUsageBatteryId = params.get("battery");
+  state.selectedUsageEventType = params.get("type");
+
   switchTab(["tab-management", "tab-usage", "tab-stats"].includes(initialTab) ? initialTab : "tab-management", false);
   await checkHealth();
   await refreshData();
+  applyUsageDeepLink();
 }
 
 function switchTab(tabId, updateHistory = true) {
@@ -240,7 +261,7 @@ function renderBatteryCards() {
               <p class="spec">${battery.capacity_mah} mAh • ${battery.cell_count}S • Purchased ${escapeHtml(battery.purchased_date)}</p>
               ${battery.notes ? `<p class="battery-note">${escapeHtml(battery.notes)}</p>` : ""}
             </div>
-            <div class="qr" data-qr-serial="${escapeHtml(battery.serial)}"></div>
+            <div class="qr" data-qr-battery-id="${battery.id}" data-qr-battery-name="${escapeHtml(battery.name || battery.serial)}" data-qr-serial="${escapeHtml(battery.serial)}"></div>
           </div>
           <div class="chips">
             <span class="chip">Last: ${formatDateTime(battery.last_usage_at)}</span>
@@ -271,17 +292,22 @@ function renderBatteryCards() {
 function renderQRCodes() {
   if (!window.QRCode) return;
   document.querySelectorAll(".qr[data-qr-serial]").forEach((container) => {
+    const batteryId = container.getAttribute("data-qr-battery-id");
+    const batteryName = container.getAttribute("data-qr-battery-name") || container.getAttribute("data-qr-serial");
     const serial = container.getAttribute("data-qr-serial");
-    if (!serial) return;
+    if (!serial || !batteryId) return;
+
+    const qrUrl = buildBatteryActionUrl(Number(batteryId), "used");
     container.innerHTML = "";
     try {
       const level = window.QRCode.CorrectLevel ? window.QRCode.CorrectLevel.M : 0;
       new window.QRCode(container, {
-        text: serial,
+        text: qrUrl,
         width: 82,
         height: 82,
         correctLevel: level
       });
+      container.title = `Open ${batteryName} to log a usage event`;
     } catch {
       container.innerHTML = `<small>${escapeHtml(serial)}</small>`;
     }
@@ -443,6 +469,55 @@ function onUsageTypeChange() {
   els.usageFinalVoltage.required = isUsed;
 }
 
+function buildBatteryActionUrl(batteryId, eventType = "used") {
+  const url = new URL(window.location.href);
+  url.searchParams.set("tab", "tab-usage");
+  url.searchParams.set("battery", String(batteryId));
+  url.searchParams.set("type", eventType);
+  return url.toString();
+}
+
+function applyUsageDeepLink() {
+  if (!state.selectedUsageBatteryId) return;
+
+  const targetBatteryId = Number(state.selectedUsageBatteryId);
+  if (!Number.isInteger(targetBatteryId)) return;
+
+  const battery = state.allBatteries.find((entry) => entry.id === targetBatteryId);
+  if (!battery) return;
+
+  const isArchived = Boolean(battery.archived);
+  const targetEventType = state.selectedUsageEventType === "charged" ? "charged" : "used";
+
+  switchTab("tab-usage", false);
+  if (els.tabSelect) {
+    els.tabSelect.value = "tab-usage";
+  }
+
+  clearAllUsageSelections();
+  if (!isArchived) {
+    const checkbox = els.usageBatteryList.querySelector(`input[type='checkbox'][value='${battery.id}']`);
+    if (checkbox) {
+      checkbox.checked = true;
+    }
+    updateUsageSelectedCount();
+  }
+
+  if (els.usageEventType.value !== targetEventType) {
+    els.usageEventType.value = targetEventType;
+    onUsageTypeChange();
+  }
+
+  if (targetEventType === "charged") {
+    els.usageFinalVoltage.value = "";
+  }
+
+  if (isArchived) {
+    setMessage(els.usageFormMessage, "This battery is archived. Restore it before logging events.", true);
+    return;
+  }
+}
+
 function updateUsageSelectedCount() {
   const selected = getSelectedBatteryIds();
   els.usageSelectedCount.textContent = `${selected.length} selected`;
@@ -452,6 +527,143 @@ function getSelectedBatteryIds() {
   return [...els.usageBatteryList.querySelectorAll("input[type='checkbox']:checked")]
     .map((checkbox) => Number(checkbox.value))
     .filter((id) => Number.isInteger(id));
+}
+
+function clearAllUsageSelections() {
+  els.usageBatteryList.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
+    checkbox.checked = false;
+  });
+  updateUsageSelectedCount();
+}
+
+async function openQrScanner() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setMessage(els.qrScannerMessage, "Camera access is not available in this browser.", true);
+    openQrScannerModal();
+    return;
+  }
+
+  openQrScannerModal();
+  try {
+    setMessage(els.qrScannerMessage, "Starting camera...");
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+    els.qrScannerVideo.srcObject = stream;
+    await els.qrScannerVideo.play();
+    setMessage(els.qrScannerMessage, "Point the camera at a QR code.");
+    startQrScanLoop();
+  } catch (error) {
+    setMessage(els.qrScannerMessage, error.message || "Could not start camera.", true);
+  }
+}
+
+function openQrScannerModal() {
+  if (!els.qrScannerModal) return;
+  els.qrScannerModal.classList.add("open");
+  els.qrScannerModal.setAttribute("aria-hidden", "false");
+}
+
+function closeQrScanner() {
+  stopQrScanLoop();
+  if (els.qrScannerVideo?.srcObject) {
+    els.qrScannerVideo.srcObject.getTracks().forEach((track) => track.stop());
+    els.qrScannerVideo.srcObject = null;
+  }
+  if (els.qrScannerModal) {
+    els.qrScannerModal.classList.remove("open");
+    els.qrScannerModal.setAttribute("aria-hidden", "true");
+  }
+  clearMessage(els.qrScannerMessage);
+}
+
+function startQrScanLoop() {
+  stopQrScanLoop();
+  const detector = getQrDetector();
+  if (!detector || !els.qrScannerVideo || !els.qrScannerCanvas) {
+    setMessage(els.qrScannerMessage, "This browser does not support camera QR scanning.", true);
+    return;
+  }
+
+  const scanFrame = async () => {
+    try {
+      const qrText = await scanCurrentFrame();
+      if (qrText) {
+        handleScannedQrText(qrText);
+        return;
+      }
+    } catch {
+      // Keep scanning until a QR is found.
+    }
+
+    scanAnimationFrame = window.requestAnimationFrame(scanFrame);
+  };
+
+  scanFrame();
+}
+
+function stopQrScanLoop() {
+  if (scanAnimationFrame) {
+    window.cancelAnimationFrame(scanAnimationFrame);
+    scanAnimationFrame = null;
+  }
+}
+
+function getQrDetector() {
+  if (!window.BarcodeDetector) return null;
+  if (!state.qrDetector) {
+    state.qrDetector = new window.BarcodeDetector({ formats: ["qr_code"] });
+  }
+  return state.qrDetector;
+}
+
+async function scanCurrentFrame() {
+  if (!els.qrScannerVideo || !els.qrScannerCanvas) return null;
+  const detector = getQrDetector();
+  if (!detector || els.qrScannerVideo.readyState < 2) return null;
+
+  const width = els.qrScannerVideo.videoWidth;
+  const height = els.qrScannerVideo.videoHeight;
+  if (!width || !height) return null;
+
+  const ctx = els.qrScannerCanvas.getContext("2d");
+  els.qrScannerCanvas.width = width;
+  els.qrScannerCanvas.height = height;
+  ctx.drawImage(els.qrScannerVideo, 0, 0, width, height);
+
+  const bitmap = await createImageBitmap(els.qrScannerCanvas);
+  try {
+    const codes = await detector.detect(bitmap);
+    return codes[0]?.rawValue || null;
+  } finally {
+    bitmap.close?.();
+  }
+}
+
+function handleScannedQrText(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return;
+
+  let url;
+  try {
+    url = new URL(raw, window.location.href);
+  } catch {
+    setMessage(els.qrScannerMessage, "That QR code is not a valid link.", true);
+    return;
+  }
+
+  const batteryParam = url.searchParams.get("battery");
+  const tabParam = url.searchParams.get("tab") || "tab-usage";
+  const typeParam = url.searchParams.get("type") || "used";
+
+  if (batteryParam && /^(\d+)$/.test(batteryParam)) {
+    state.selectedUsageBatteryId = batteryParam;
+    state.selectedUsageEventType = typeParam;
+    closeQrScanner();
+    refreshData();
+    switchTab(tabParam === "tab-usage" ? "tab-usage" : tabParam, true);
+    return;
+  }
+
+  setMessage(els.qrScannerMessage, "QR code did not include a battery selection.", true);
 }
 
 function parseVoltageInput(rawValue) {
