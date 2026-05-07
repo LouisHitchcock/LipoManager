@@ -8,46 +8,33 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="hero panel">
+      <header class="hero panel compact-panel">
         <div>
           <p class="eyebrow">FPV race battery tracking</p>
           <h1>LipoManager</h1>
-          <p class="subtitle">Manage packs, record usage cycles, and monitor long-term performance.</p>
+          <p class="subtitle">Manage packs, record usage cycles, and review long-term battery health without fighting the UI.</p>
         </div>
         <div class="hero-meta">
           <div id="api-status" class="pill">Checking API...</div>
-          <p>Built for fast field updates and clean label workflows.</p>
         </div>
       </header>
 
       <main class="workspace">
-        <aside class="tab-sidebar panel">
+        <aside class="tab-sidebar panel compact-panel">
           <div>
             <p class="eyebrow">Quick switch</p>
             <h2>Sections</h2>
-            <p class="sidebar-copy">Race-day first. Jump between batteries, usage, and stats.</p>
+            <p class="sidebar-copy">Batteries, batch usage, and stats all use the same battery-card grid.</p>
           </div>
           <nav class="tab-list" aria-label="Primary sections">
-            <button
-              type="button"
-              class="tab-btn active"
-              data-tab-target="tab-management"
-              aria-controls="tab-management"
-              aria-selected="true"
-            >
-              Batteries
-            </button>
-            <button type="button" class="tab-btn" data-tab-target="tab-usage" aria-controls="tab-usage" aria-selected="false">
-              Usage
-            </button>
-            <button type="button" class="tab-btn" data-tab-target="tab-stats" aria-controls="tab-stats" aria-selected="false">
-              Stats
-            </button>
+            <button type="button" class="tab-btn active" data-tab-target="tab-management" aria-controls="tab-management" aria-selected="true">Batteries</button>
+            <button type="button" class="tab-btn" data-tab-target="tab-usage" aria-controls="tab-usage" aria-selected="false">Usage</button>
+            <button type="button" class="tab-btn" data-tab-target="tab-stats" aria-controls="tab-stats" aria-selected="false">Stats</button>
           </nav>
         </aside>
 
         <div class="workspace-content">
-          <section class="mobile-tab-picker panel">
+          <section class="mobile-tab-picker panel compact-panel">
             <label>
               Section
               <select id="tab-select">
@@ -59,10 +46,9 @@
           </section>
 
           <section id="tab-management" class="tab-panel active">
-            <div class="management-shell">
-              <form id="battery-form" class="panel create-panel">
-                <h2>Create Battery</h2>
-                <p class="muted">Generate a label-ready serial and store baseline details.</p>
+            <details class="panel compact-panel create-drawer">
+              <summary>Create Batteries</summary>
+              <form id="battery-form" class="drawer-form">
                 <div class="form-grid">
                   <label>
                     Battery name (optional)
@@ -70,7 +56,7 @@
                   </label>
                   <label>
                     Serial (optional)
-                    <input type="text" id="battery-serial" placeholder="Auto generated if blank" />
+                    <input type="text" id="battery-serial" placeholder="Leave blank to auto-generate" />
                   </label>
                   <label>
                     Capacity (mAh)
@@ -94,82 +80,90 @@
                   </label>
                 </div>
                 <div class="form-actions">
-                  <button type="submit">Create Battery</button>
+                  <button type="submit" id="battery-submit">Create Battery</button>
                   <div id="battery-form-message" class="message"></div>
                 </div>
               </form>
+            </details>
 
-              <div class="fleet-shell">
-                <section class="panel fleet-panel">
-                  <div class="panel-header stack-gap">
-                    <div>
-                      <h2>Battery Fleet</h2>
-                      <p class="muted">Track active and archived packs with QR labels.</p>
-                    </div>
-                    <div class="toolbar fleet-toolbar">
-                      <label>
-                        Show
-                        <select id="battery-filter">
-                          <option value="active">Active</option>
-                          <option value="archived">Archived</option>
-                          <option value="all">All</option>
-                        </select>
-                      </label>
-                      <label>
-                        Sort
-                        <select id="battery-sort-order">
-                          <option value="stars">Stars</option>
-                          <option value="newest">Newest</option>
-                          <option value="recently-used">Most recently used</option>
-                        </select>
-                      </label>
-                      <label class="search-wide">
-                        Search
-                        <input type="search" id="battery-search" placeholder="Name, serial, or last 3 digits" />
-                      </label>
-                      <button id="refresh-btn" class="secondary" type="button">Refresh</button>
-                    </div>
+            <div class="tab-shell">
+              <section class="panel compact-panel browser-panel">
+                <div class="section-head">
+                  <div>
+                    <h2>Batteries</h2>
+                    <p class="muted">Grid overview with quick actions and last-3-digit search.</p>
                   </div>
-                  <div id="battery-cards" class="battery-grid"></div>
-                </section>
+                  <div class="controls-row">
+                    <label>
+                      Show
+                      <select id="battery-filter">
+                        <option value="active">Active</option>
+                        <option value="archived">Archived</option>
+                        <option value="all">All</option>
+                      </select>
+                    </label>
+                    <label>
+                      Sort
+                      <select id="battery-sort-order">
+                        <option value="stars">Stars</option>
+                        <option value="newest">Newest</option>
+                        <option value="recently-used">Most Recently Used</option>
+                      </select>
+                    </label>
+                    <label class="search-field">
+                      Search
+                      <input type="search" id="battery-search" placeholder="Name, serial, or last 3 digits" />
+                    </label>
+                    <button id="refresh-btn" class="secondary" type="button">Refresh</button>
+                  </div>
+                </div>
+                <div id="battery-grid" class="battery-grid"></div>
+              </section>
 
-                <aside class="panel detail-panel" id="battery-detail-panel">
-                  <div class="detail-empty">
-                    <h2>Battery Details</h2>
-                    <p class="muted">Select a battery card to inspect stats, QR, and actions.</p>
-                  </div>
-                </aside>
-              </div>
+              <aside class="panel compact-panel detail-panel" id="battery-detail-panel">
+                <div class="detail-empty">
+                  <h2>Battery Details</h2>
+                  <p class="muted">Select a battery card to inspect it, change rating, archive it, or jump to stats and usage.</p>
+                </div>
+              </aside>
             </div>
           </section>
 
           <section id="tab-usage" class="tab-panel">
-            <div class="panel usage-header-row">
-              <div>
-                <h2>Batch Usage Logger</h2>
-                <p class="muted">Select one or many batteries and write a single event to all of them.</p>
-              </div>
-              <button id="scan-qr-btn" type="button" class="secondary">Scan QR</button>
-            </div>
-            <form id="usage-form" class="panel">
-              <div class="form-grid">
-                <div class="span-2 picker-panel">
-                  <div class="picker-head">
-                    <label>Choose batteries</label>
-                    <div class="sort-row">
+            <div class="tab-shell">
+              <section class="panel compact-panel browser-panel">
+                <div class="section-head">
+                  <div>
+                    <h2>Usage</h2>
+                    <p class="muted">Select multiple packs from the same battery-card grid, then record one event for all of them.</p>
+                  </div>
+                  <div class="controls-row">
+                    <label>
+                      Sort
                       <select id="usage-sort-order">
                         <option value="stars">Stars</option>
                         <option value="newest">Newest</option>
-                        <option value="recently-used">Most recently used</option>
+                        <option value="recently-used">Most Recently Used</option>
                       </select>
-                      <button id="usage-select-all" type="button" class="secondary tiny">Select all</button>
-                    </div>
+                    </label>
+                    <label class="search-field">
+                      Search
+                      <input id="usage-search" type="search" placeholder="Name, serial, or last 3 digits" />
+                    </label>
+                    <button id="usage-select-all" type="button" class="secondary">Select All Visible</button>
+                    <button id="usage-clear-selection" type="button" class="secondary">Clear</button>
                   </div>
-                  <div class="search-row">
-                    <input id="usage-battery-search" type="search" placeholder="Search name, serial, or last 3 digits" />
+                </div>
+                <div id="usage-grid" class="battery-grid"></div>
+              </section>
+
+              <form id="usage-form" class="panel compact-panel action-panel">
+                <div class="action-head">
+                  <div>
+                    <h2>Record Event</h2>
+                    <p id="usage-selected-count" class="muted compact-copy">0 selected</p>
                   </div>
-                  <div id="usage-battery-list" class="checklist"></div>
-                  <small id="usage-selected-count">0 selected</small>
+                  <button id="scan-qr-btn" type="button" class="secondary">Scan QR</button>
                 </div>
                 <label>
                   Event
@@ -183,24 +177,85 @@
                   Final battery voltage 0-25V (required for Used)
                   <input type="text" id="usage-final-voltage" inputmode="decimal" placeholder="Example: 16.24 or 16.24v" />
                 </label>
-                <label class="span-2">
+                <label>
                   Notes (optional)
                   <input type="text" id="usage-notes" maxlength="300" />
                 </label>
-              </div>
-              <div class="form-actions">
-                <button type="submit">Record Event</button>
-                <div id="usage-form-message" class="message"></div>
-              </div>
-            </form>
+                <div class="form-actions">
+                  <button type="submit" id="usage-submit">Record Event</button>
+                  <div id="usage-form-message" class="message"></div>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section id="tab-stats" class="tab-panel">
+            <section class="metrics-grid stats-summary">
+              <article class="metric panel compact-panel">
+                <p class="metric-label">Active batteries</p>
+                <p id="metric-active-count" class="metric-value">0</p>
+              </article>
+              <article class="metric panel compact-panel">
+                <p class="metric-label">Archived batteries</p>
+                <p id="metric-archived-count" class="metric-value">0</p>
+              </article>
+              <article class="metric panel compact-panel">
+                <p class="metric-label">Used events</p>
+                <p id="metric-used-events" class="metric-value">0</p>
+              </article>
+              <article class="metric panel compact-panel">
+                <p class="metric-label">Average rating</p>
+                <p id="metric-average-rating" class="metric-value">-</p>
+              </article>
+            </section>
+
+            <div class="tab-shell">
+              <section class="panel compact-panel browser-panel">
+                <div class="section-head">
+                  <div>
+                    <h2>Stats</h2>
+                    <p class="muted">Click a battery card to inspect stats and recent events.</p>
+                  </div>
+                  <div class="controls-row">
+                    <label>
+                      Sort
+                      <select id="stats-sort-order">
+                        <option value="stars">Stars</option>
+                        <option value="newest">Newest</option>
+                        <option value="recently-used">Most Recently Used</option>
+                      </select>
+                    </label>
+                    <label class="search-field">
+                      Search
+                      <input id="stats-search" type="search" placeholder="Name, serial, or last 3 digits" />
+                    </label>
+                  </div>
+                </div>
+                <div id="stats-grid" class="battery-grid"></div>
+              </section>
+
+              <aside class="panel compact-panel detail-panel stats-detail-panel">
+                <div id="stats-panel" class="stats-panel">
+                  <div class="detail-empty">
+                    <h2>Battery Stats</h2>
+                    <p class="muted">Select a battery card to view stats and manage duplicate events.</p>
+                  </div>
+                </div>
+                <div class="events-toolbar">
+                  <h3>Recent Events</h3>
+                  <button id="stats-delete-selected" type="button" class="secondary">Delete Selected</button>
+                </div>
+                <ul id="battery-events" class="events"></ul>
+              </aside>
+            </div>
           </section>
 
           <div id="qr-scanner-modal" class="qr-modal" aria-hidden="true">
-            <div class="qr-modal-card panel" role="dialog" aria-modal="true" aria-labelledby="qr-scanner-title">
+            <div class="qr-modal-card panel compact-panel" role="dialog" aria-modal="true" aria-labelledby="qr-scanner-title">
               <div class="qr-modal-header">
                 <div>
                   <h2 id="qr-scanner-title">Scan Battery QR</h2>
-                  <p class="muted">Point your camera at a battery QR to jump to its usage form.</p>
+                  <p class="muted">Point your camera at a battery QR to jump straight to its usage action.</p>
                 </div>
                 <button id="qr-scanner-close" type="button" class="secondary">Close</button>
               </div>
@@ -209,51 +264,6 @@
               <div id="qr-scanner-message" class="message"></div>
             </div>
           </div>
-
-          <section id="tab-stats" class="tab-panel">
-            <section class="metrics-grid stats-summary">
-              <article class="metric panel">
-                <p class="metric-label">Active batteries</p>
-                <p id="metric-active-count" class="metric-value">0</p>
-              </article>
-              <article class="metric panel">
-                <p class="metric-label">Archived batteries</p>
-                <p id="metric-archived-count" class="metric-value">0</p>
-              </article>
-              <article class="metric panel">
-                <p class="metric-label">Used events</p>
-                <p id="metric-used-events" class="metric-value">0</p>
-              </article>
-              <article class="metric panel">
-                <p class="metric-label">Average rating</p>
-                <p id="metric-average-rating" class="metric-value">-</p>
-              </article>
-            </section>
-
-            <div class="layout-two-col stats-layout">
-              <section class="panel">
-                <h2>Battery Insights</h2>
-                <p class="muted">Inspect detailed stats for one pack.</p>
-                <div class="form-grid">
-                  <label class="span-2">
-                    Battery
-                    <select id="stats-battery-select"></select>
-                  </label>
-                  <div class="stats-grid-cards" id="stats-battery-grid"></div>
-                  <div class="form-actions">
-                    <button id="stats-delete-selected" type="button" class="secondary">Delete Selected Events</button>
-                  </div>
-                  <div id="stats-panel" class="stats-panel span-2"></div>
-                </div>
-              </section>
-
-              <section class="panel">
-                <h2>Recent Events</h2>
-                <p class="muted">Latest logs for the selected pack.</p>
-                <ul id="battery-events" class="events"></ul>
-              </section>
-            </div>
-          </section>
         </div>
       </main>
     </div>
