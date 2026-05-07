@@ -227,6 +227,41 @@ function renderQRCodes() {
   });
 }
 
+function renderBatteryDetail() {
+  if (!els.batteryDetailPanel) return;
+  const battery = state.allBatteries.find((entry) => entry.id === state.selectedStatsBatteryId) || getVisibleBatteries()[0] || null;
+  if (!battery) {
+    els.batteryDetailPanel.innerHTML = `
+      <div class="detail-empty">
+        <h2>Battery Details</h2>
+        <p class="muted">Select a battery card to inspect stats, QR, and actions.</p>
+      </div>`;
+    return;
+  }
+
+  const last3 = serialSuffix(battery.serial);
+  els.batteryDetailPanel.innerHTML = `
+    <div class="detail-header">
+      <div>
+        <p class="eyebrow">Selected Battery</p>
+        <h2>${escapeHtml(battery.name || battery.serial)}</h2>
+        <p class="muted">${escapeHtml(battery.serial)}${last3 ? ` • last 3: ${escapeHtml(last3)}` : ""}</p>
+      </div>
+      <div class="qr large-qr" data-qr-battery-id="${battery.id}" data-qr-serial="${escapeHtml(battery.serial)}"></div>
+    </div>
+    <div class="detail-stats">
+      <span class="chip">${battery.capacity_mah} mAh</span>
+      <span class="chip">${battery.cell_count}S</span>
+      <span class="chip">${battery.archived ? "Archived" : "Active"}</span>
+      <span class="chip">Rating: ${battery.rating ? "★".repeat(battery.rating) : "-"}</span>
+      <span class="chip">Used: ${battery.used_count ?? 0}</span>
+      <span class="chip">Charged: ${battery.charged_count ?? 0}</span>
+    </div>
+    <p class="detail-copy">Purchased ${escapeHtml(battery.purchased_date)}${battery.notes ? ` • ${escapeHtml(battery.notes)}` : ""}</p>
+  `;
+  renderQRCodes();
+}
+
 function onBatteryCardsClick(event) {
   const card = event.target.closest("button[data-action], .battery-card");
   if (!card) return;
