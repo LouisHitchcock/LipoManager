@@ -468,8 +468,15 @@ async function onBatteryCardsChange(event) {
 }
 
 function onUsageTypeChange() {
-  const isUsed = els.usageEventType.value === "used";
+  const eventType = els.usageEventType.value;
+  const isUsed = eventType === "used";
   els.usageFinalVoltage.required = isUsed;
+
+  if (eventType === "storage") {
+    els.usageFinalVoltage.value = "3.8";
+  } else if (eventType === "charged" && els.usageFinalVoltage.value === "3.8") {
+    els.usageFinalVoltage.value = "";
+  }
 }
 
 function buildBatteryActionUrl(batteryId, eventType = "used") {
@@ -490,7 +497,7 @@ function applyUsageDeepLink() {
   if (!battery) return;
 
   const isArchived = Boolean(battery.archived);
-  const targetEventType = state.selectedUsageEventType === "charged" ? "charged" : "used";
+  const targetEventType = state.selectedUsageEventType === "charged" ? "charged" : state.selectedUsageEventType === "storage" ? "storage" : "used";
 
   switchTab("tab-usage", false);
   if (els.tabSelect) {
@@ -726,13 +733,15 @@ async function submitUsageForm(event) {
     return;
   }
 
+  const adjustedFinalAvgVoltage = eventType === "storage" ? 3.8 : finalAvgVoltage;
+
   try {
     await api("/api/events/batch", {
       method: "POST",
       body: {
         batteryIds,
         eventType,
-        finalAvgVoltage,
+        finalAvgVoltage: adjustedFinalAvgVoltage,
         notes
       }
     });
