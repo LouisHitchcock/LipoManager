@@ -1,0 +1,1 @@
+ALTER TABLE batteries ADD COLUMN name TEXT;

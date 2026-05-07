@@ -1,0 +1,16 @@
+{
+  "name": "lipomanager-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "migrate": "wrangler d1 migrations apply lipomanager-db --remote",
+    "dev": "wrangler dev"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260507.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.59.2"
+  }
+}
+

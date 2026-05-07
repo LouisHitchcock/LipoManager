@@ -1,0 +1,9 @@
+name = "louishitchcock-lipomanager-api"
+main = "src/index.ts"
+compatibility_date = "2026-05-07"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lipomanager-db"
+database_id = "a70539ce-b2f5-4ee9-9530-752a00cd96c6"
+
