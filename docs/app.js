@@ -9,7 +9,7 @@ const state = {
 };
 
 const els = {};
-
+let scanAnimationFrame = null;
 document.addEventListener("DOMContentLoaded", () => {
   cacheElements();
   bindEvents();
