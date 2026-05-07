@@ -22,7 +22,7 @@ function buildCorsHeaders(request: Request): Record<string, string> {
 
   return {
     "access-control-allow-origin": allowOrigin,
-    "access-control-allow-methods": "GET,POST,PATCH,OPTIONS",
+    "access-control-allow-methods": "GET,POST,PATCH,DELETE,OPTIONS",
     "access-control-allow-headers": requestedHeaders || "content-type",
     "access-control-max-age": "86400",
     vary: "Origin, Access-Control-Request-Headers"
