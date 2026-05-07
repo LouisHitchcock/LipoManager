@@ -62,19 +62,21 @@ function cacheElements() {
 function bindEvents() {
   els.tabButtons.forEach((button) => button.addEventListener("click", () => switchTab(button.dataset.tabTarget)));
   if (els.tabSelect) els.tabSelect.addEventListener("change", () => switchTab(els.tabSelect.value));
-  els.batteryFilter.addEventListener("change", renderBatteryCards);
-  els.batterySortOrder.addEventListener("change", renderBatteryCards);
-  els.batterySerialSearch.addEventListener("input", renderBatteryCards);
-  els.usageSortOrder.addEventListener("change", renderUsageBatteryList);
-  els.usageBatterySearch.addEventListener("input", renderUsageBatteryList);
-  els.refreshBtn.addEventListener("click", refreshData);
-  els.batteryCards.addEventListener("click", onBatteryCardsClick);
-  els.batteryCards.addEventListener("change", onBatteryCardsChange);
-  els.usageBatteryList.addEventListener("change", updateUsageSelectedCount);
-  els.usageEventType.addEventListener("change", onUsageTypeChange);
-  els.usageSelectAll.addEventListener("click", selectAllUsageBatteries);
-  els.batteryForm.addEventListener("submit", submitBatteryForm);
-  els.usageForm.addEventListener("submit", submitUsageForm);
+  if (els.batteryFilter) els.batteryFilter.addEventListener("change", renderBatteryCards);
+  if (els.batterySortOrder) els.batterySortOrder.addEventListener("change", renderBatteryCards);
+  if (els.batterySerialSearch) els.batterySerialSearch.addEventListener("input", renderBatteryCards);
+  if (els.usageSortOrder) els.usageSortOrder.addEventListener("change", renderUsageBatteryList);
+  if (els.usageBatterySearch) els.usageBatterySearch.addEventListener("input", renderUsageBatteryList);
+  if (els.refreshBtn) els.refreshBtn.addEventListener("click", refreshData);
+  if (els.batteryCards) {
+    els.batteryCards.addEventListener("click", onBatteryCardsClick);
+    els.batteryCards.addEventListener("change", onBatteryCardsChange);
+  }
+  if (els.usageBatteryList) els.usageBatteryList.addEventListener("change", updateUsageSelectedCount);
+  if (els.usageEventType) els.usageEventType.addEventListener("change", onUsageTypeChange);
+  if (els.usageSelectAll) els.usageSelectAll.addEventListener("click", selectAllUsageBatteries);
+  if (els.batteryForm) els.batteryForm.addEventListener("submit", submitBatteryForm);
+  if (els.usageForm) els.usageForm.addEventListener("submit", submitUsageForm);
   if (els.scanQrBtn) els.scanQrBtn.addEventListener("click", openQrScanner);
   if (els.qrScannerClose) els.qrScannerClose.addEventListener("click", closeQrScanner);
   if (els.qrScannerModal) els.qrScannerModal.addEventListener("click", (e) => { if (e.target === els.qrScannerModal) closeQrScanner(); });
