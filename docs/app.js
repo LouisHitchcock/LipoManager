@@ -6,7 +6,8 @@ const state = {
   selectedUsageBatteryId: null,
   selectedUsageEventType: null,
   globalStats: null,
-  qrDetector: null
+  qrDetector: null,
+  scanAnimationFrame: null
 };
 
 const els = {};
@@ -578,8 +579,11 @@ function closeQrScanner() {
 
 function startQrScanLoop() {
   stopQrScanLoop();
-  const detector = getQrDetector();
-  if (!detector || !els.qrScannerVideo || !els.qrScannerCanvas) {
+  if (!els.qrScannerVideo || !els.qrScannerCanvas) {
+    setMessage(els.qrScannerMessage, "This browser does not support camera QR scanning.", true);
+    return;
+  }
+  if (!window.BarcodeDetector && typeof window.jsQR !== "function") {
     setMessage(els.qrScannerMessage, "This browser does not support camera QR scanning.", true);
     return;
   }
@@ -587,21 +591,14 @@ function startQrScanLoop() {
   const scanFrame = async () => {
     try {
       const qrText = await scanCurrentFrame();
-      if (qrText) {
-        handleScannedQrText(qrText);
-        return;
-      }
+      if (qr    state.scanAnimationFrame = window.requestAnimationFrame(scanFrame);
+ }
     } catch {
-      // Keep scanning until a QR is found.
-    }
-
-    scanAnimationFrame = window.requestAnimationFrame(scanFrame);
-  };
-
-  scanFrame();
-}
-
-function stopQrScanLoop() {
+      // Keep scanning until a QR i  if (state.scanAnimationFrame) {
+    window.cancelAnimationFrame(state.scanAnimationFrame);
+    state.scanAnimationFrame = null;
+  }
+topQrScanLoop() {
   if (scanAnimationFrame) {
     window.cancelAnimationFrame(scanAnimationFrame);
     scanAnimationFrame = null;
@@ -631,12 +628,14 @@ async function scanCurrentFrame() {
 
   if (window.BarcodeDetector) {
     const detector = getQrDetector();
-    const bitmap = await createImageBitmap(els.qrScannerCanvas);
-    try {
-      const codes = await detector.detect(bitmap);
-      return codes[0]?.rawValue || null;
-    } finally {
-      bitmap.close?.();
+    if (detector) {
+      const bitmap = await createImageBitmap(els.qrScannerCanvas);
+      try {
+        const codes = await detector.detect(bitmap);
+        return codes[0]?.rawValue || null;
+      } finally {
+        bitmap.close?.();
+      }
     }
   }
 
