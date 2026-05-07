@@ -36,6 +36,7 @@ function cacheElements() {
   els.usageFinalVoltage = document.getElementById("usage-final-voltage");
   els.usageBatteryList = document.getElementById("usage-battery-list");
   els.usageSelectedCount = document.getElementById("usage-selected-count");
+  els.usageSelectAll = document.getElementById("usage-select-all");
   els.scanQrBtn = document.getElementById("scan-qr-btn");
   els.qrScannerModal = document.getElementById("qr-scanner-modal");
   els.qrScannerVideo = document.getElementById("qr-scanner-video");
@@ -71,6 +72,7 @@ function bindEvents() {
   els.batteryCards.addEventListener("change", onBatteryCardsChange);
   els.usageBatteryList.addEventListener("change", updateUsageSelectedCount);
   els.usageEventType.addEventListener("change", onUsageTypeChange);
+  if (els.usageSelectAll) els.usageSelectAll.addEventListener("click", selectAllUsageBatteries);
   els.batteryForm.addEventListener("submit", submitBatteryForm);
   els.usageForm.addEventListener("submit", submitUsageForm);
   if (els.scanQrBtn) els.scanQrBtn.addEventListener("click", openQrScanner);
@@ -537,6 +539,13 @@ function getSelectedBatteryIds() {
   return [...els.usageBatteryList.querySelectorAll("input[type='checkbox']:checked")]
     .map((checkbox) => Number(checkbox.value))
     .filter((id) => Number.isInteger(id));
+}
+
+function selectAllUsageBatteries() {
+  els.usageBatteryList.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
+    checkbox.checked = true;
+  });
+  updateUsageSelectedCount();
 }
 
 function clearAllUsageSelections() {
