@@ -591,17 +591,24 @@ function startQrScanLoop() {
   const scanFrame = async () => {
     try {
       const qrText = await scanCurrentFrame();
-      if (qr    state.scanAnimationFrame = window.requestAnimationFrame(scanFrame);
- }
+      if (qrText) {
+        handleScannedQrText(qrText);
+        return;
+      }
     } catch {
-      // Keep scanning until a QR i  if (state.scanAnimationFrame) {
+      // Keep scanning until a QR is found.
+    }
+
+    state.scanAnimationFrame = window.requestAnimationFrame(scanFrame);
+  };
+
+  scanFrame();
+}
+
+function stopQrScanLoop() {
+  if (state.scanAnimationFrame) {
     window.cancelAnimationFrame(state.scanAnimationFrame);
     state.scanAnimationFrame = null;
-  }
-topQrScanLoop() {
-  if (scanAnimationFrame) {
-    window.cancelAnimationFrame(scanAnimationFrame);
-    scanAnimationFrame = null;
   }
 }
 
@@ -628,14 +635,12 @@ async function scanCurrentFrame() {
 
   if (window.BarcodeDetector) {
     const detector = getQrDetector();
-    if (detector) {
-      const bitmap = await createImageBitmap(els.qrScannerCanvas);
-      try {
-        const codes = await detector.detect(bitmap);
-        return codes[0]?.rawValue || null;
-      } finally {
-        bitmap.close?.();
-      }
+    const bitmap = await createImageBitmap(els.qrScannerCanvas);
+    try {
+      const codes = await detector.detect(bitmap);
+      return codes[0]?.rawValue || null;
+    } finally {
+      bitmap.close?.();
     }
   }
 
