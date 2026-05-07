@@ -123,9 +123,14 @@
           </section>
 
           <section id="tab-usage" class="tab-panel">
+            <div class="panel usage-header-row">
+              <div>
+                <h2>Batch Usage Logger</h2>
+                <p class="muted">Select one or many batteries and write a single event to all of them.</p>
+              </div>
+              <button id="scan-qr-btn" type="button" class="secondary">Scan QR</button>
+            </div>
             <form id="usage-form" class="panel">
-              <h2>Batch Usage Logger</h2>
-              <p class="muted">Select one or many batteries and write a single event to all of them.</p>
               <div class="form-grid">
                 <div class="span-2">
                   <label>Choose batteries</label>
@@ -154,6 +159,21 @@
               </div>
             </form>
           </section>
+
+          <div id="qr-scanner-modal" class="qr-modal" aria-hidden="true">
+            <div class="qr-modal-card panel" role="dialog" aria-modal="true" aria-labelledby="qr-scanner-title">
+              <div class="qr-modal-header">
+                <div>
+                  <h2 id="qr-scanner-title">Scan Battery QR</h2>
+                  <p class="muted">Point your camera at a battery QR to jump to its usage form.</p>
+                </div>
+                <button id="qr-scanner-close" type="button" class="secondary">Close</button>
+              </div>
+              <video id="qr-scanner-video" playsinline muted></video>
+              <canvas id="qr-scanner-canvas" hidden></canvas>
+              <div id="qr-scanner-message" class="message"></div>
+            </div>
+          </div>
 
           <section id="tab-stats" class="tab-panel">
             <section class="metrics-grid stats-summary">
