@@ -33,6 +33,7 @@ function cacheElements() {
   els.batterySortOrder = document.getElementById("battery-sort-order");
   els.batterySerialSearch = document.getElementById("battery-serial-search");
   els.batteryCards = document.getElementById("battery-cards");
+  els.batteryDetailPanel = document.getElementById("battery-detail-panel");
   els.refreshBtn = document.getElementById("refresh-btn");
   els.usageForm = document.getElementById("usage-form");
   els.usageFormMessage = document.getElementById("usage-form-message");
@@ -183,6 +184,7 @@ function renderBatteryCards() {
   const batteries = getVisibleBatteries();
   els.batteryCards.innerHTML = batteries.length ? batteries.map((battery) => batteryCardHtml(battery)).join("") : `<div class="empty-state">No batteries match this view.</div>`;
   renderQRCodes();
+  renderBatteryDetail();
 }
 
 function batteryCardHtml(battery) {
@@ -208,6 +210,7 @@ function renderStatsGrid() {
   if (!els.statsBatteryGrid) return;
   const batteries = sortBatteries([...state.allBatteries], "recently-used");
   els.statsBatteryGrid.innerHTML = batteries.length ? batteries.map((battery) => `<button type="button" class="stats-battery-card ${state.selectedStatsBatteryId === battery.id ? "active" : ""}" data-stats-battery-id="${battery.id}"><strong>${escapeHtml(battery.name || battery.serial)}</strong><span>${escapeHtml(battery.serial)}</span><span>Last 3: ${escapeHtml(serialSuffix(battery.serial))}</span><span>${battery.archived ? "Archived" : "Active"}</span><span>Rating: ${battery.rating ? "★".repeat(battery.rating) : "-"}</span></button>`).join("") : `<div class="empty-state">No batteries.</div>`;
+  renderBatteryDetail();
 }
 
 function renderQRCodes() {
@@ -223,12 +226,17 @@ function renderQRCodes() {
 }
 
 function onBatteryCardsClick(event) {
-  const button = event.target.closest("button[data-action]");
-  if (!button) return;
-  const id = Number(button.dataset.id);
+  const card = event.target.closest("button[data-action], .battery-card");
+  if (!card) return;
+  const id = Number(card.dataset.id || card.dataset.batteryId);
   if (!id) return;
-  if (button.dataset.action === "archive") api(`/api/batteries/${id}`, { method: "PATCH", body: { archived: button.dataset.archived !== "1" } }).then(refreshData).catch((e) => setMessage(els.batteryFormMessage, e.message, true));
-  if (button.dataset.action === "stats") { state.selectedStatsBatteryId = id; renderStatsGrid(); loadStatsPanel(); switchTab("tab-stats"); }
+  const actionButton = event.target.closest("button[data-action]");
+  if (actionButton?.dataset.action === "archive") {
+    api(`/api/batteries/${id}`, { method: "PATCH", body: { archived: actionButton.dataset.archived !== "1" } }).then(refreshData).catch((e) => setMessage(els.batteryFormMessage, e.message, true));
+    return;
+  }
+  state.selectedStatsBatteryId = id;
+  renderBatteryDetail();
 }
 
 function onBatteryCardsChange(event) {

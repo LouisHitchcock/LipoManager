@@ -59,8 +59,8 @@
           </section>
 
           <section id="tab-management" class="tab-panel active">
-            <div class="layout-two-col">
-              <form id="battery-form" class="panel">
+            <div class="management-shell">
+              <form id="battery-form" class="panel create-panel">
                 <h2>Create Battery</h2>
                 <p class="muted">Generate a label-ready serial and store baseline details.</p>
                 <div class="form-grid">
@@ -99,37 +99,47 @@
                 </div>
               </form>
 
-              <section class="panel">
-                <div class="panel-header">
-                  <div>
-                <h2>Battery Fleet</h2>
-                <p class="muted">Track active and archived packs with QR labels.</p>
-                <div class="sort-row">
-                  <select id="battery-sort-order">
-                    <option value="stars">Stars</option>
-                    <option value="newest">Newest</option>
-                    <option value="recently-used">Most recently used</option>
-                  </select>
-                  <input id="battery-serial-search" type="search" placeholder="Search name, serial, or last 3 digits" />
-                </div>
-                  <div class="toolbar">
-                    <label>
-                      Show
-                      <select id="battery-filter">
-                        <option value="active">Active</option>
-                        <option value="archived">Archived</option>
-                        <option value="all">All</option>
-                      </select>
-                    </label>
-                    <label>
-                      Search
-                      <input type="search" id="battery-search" placeholder="Name, serial, or notes" />
-                    </label>
-                    <button id="refresh-btn" class="secondary" type="button">Refresh</button>
+              <div class="fleet-shell">
+                <section class="panel fleet-panel">
+                  <div class="panel-header stack-gap">
+                    <div>
+                      <h2>Battery Fleet</h2>
+                      <p class="muted">Track active and archived packs with QR labels.</p>
+                    </div>
+                    <div class="toolbar fleet-toolbar">
+                      <label>
+                        Show
+                        <select id="battery-filter">
+                          <option value="active">Active</option>
+                          <option value="archived">Archived</option>
+                          <option value="all">All</option>
+                        </select>
+                      </label>
+                      <label>
+                        Sort
+                        <select id="battery-sort-order">
+                          <option value="stars">Stars</option>
+                          <option value="newest">Newest</option>
+                          <option value="recently-used">Most recently used</option>
+                        </select>
+                      </label>
+                      <label class="search-wide">
+                        Search
+                        <input type="search" id="battery-search" placeholder="Name, serial, or last 3 digits" />
+                      </label>
+                      <button id="refresh-btn" class="secondary" type="button">Refresh</button>
+                    </div>
                   </div>
-                </div>
-                <div id="battery-cards" class="battery-cards"></div>
-              </section>
+                  <div id="battery-cards" class="battery-grid"></div>
+                </section>
+
+                <aside class="panel detail-panel" id="battery-detail-panel">
+                  <div class="detail-empty">
+                    <h2>Battery Details</h2>
+                    <p class="muted">Select a battery card to inspect stats, QR, and actions.</p>
+                  </div>
+                </aside>
+              </div>
             </div>
           </section>
 

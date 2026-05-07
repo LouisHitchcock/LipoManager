@@ -189,6 +189,46 @@ main {
   gap: 0.75rem;
 }
 
+.management-shell {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.fleet-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.fleet-panel,
+.detail-panel,
+.create-panel {
+  min-width: 0;
+}
+
+.stack-gap {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.fleet-toolbar {
+  width: 100%;
+  align-items: end;
+}
+
+.search-wide {
+  flex: 1 1 220px;
+}
+
+.battery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.55rem;
+}
+
 h2 {
   margin: 0.1rem 0 0.4rem;
 }
@@ -488,6 +528,7 @@ button {
   padding: 0.75rem;
   display: grid;
   gap: 0.6rem;
+  min-width: 0;
 }
 
 .battery-card.archived {
@@ -498,22 +539,19 @@ button {
   display: flex;
   justify-content: space-between;
   gap: 0.8rem;
+  min-width: 0;
+}
+
+.battery-serial,
+.battery-note,
+.spec {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .battery-serial {
   margin: 0;
   font-size: 1.08rem;
-}
-
-.battery-note {
-  margin: 0.28rem 0 0;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.spec {
-  margin: 0.1rem 0 0;
-  color: var(--text-muted);
 }
 
 .chips {
@@ -590,13 +628,17 @@ button {
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.78fr);
 }
 
-.stats-panel {
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  background: var(--bg-soft);
-  padding: 0.72rem;
-  display: grid;
-  gap: 0.32rem;
+.detail-panel {
+  position: sticky;
+  top: 1.4rem;
+}
+
+.detail-empty {
+  color: var(--text-muted);
+}
+
+.detail-panel .stats-panel {
+  margin-bottom: 0.65rem;
 }
 
 .stats-panel p {
